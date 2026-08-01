@@ -40,7 +40,7 @@ def _storePassword = System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.ge
 android {
     // ndkVersion "27.0.12077973"
     compileSdkVersion 35
-    namespace 'com.honjow.fehviewer'
+    namespace 'com.ldwdg.erosehentai'
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -51,7 +51,7 @@ android {
 //    }
 
     defaultConfig {
-        applicationId "com.honjow.fehviewer"
+        applicationId "com.ldwdg.erosehentai"
         minSdkVersion flutter.minSdkVersion
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 36

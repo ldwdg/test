@@ -2,7 +2,7 @@ name: eros_fe
 description: An unofficial e-hentai app
 
 publish_to: 'none'
-version: 1.9.2+566
+version: 2.0.0+567
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
