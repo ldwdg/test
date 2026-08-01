@@ -645,6 +645,7 @@ extension EhString on String {
     if (RegExp(EHConst.REG_URL_THUMB).hasMatch(this) &&
         contains(EHConst.EX_BASE_HOST) &&
         ehSettingService.redirectThumbLink) {
+      // 新格式: s.exhentai.org/w/ab/... ; group(2) 包含 w/ 前缀
       return replaceFirstMapped(
         RegExp(EHConst.REG_URL_THUMB),
         (Match m) => '${EHConst.URL_PREFIX_THUMB_EH}/${m.group(2)}',
