@@ -75,3 +75,4 @@ lib/config/config.dart
 .env
 libisar.so
 ios/Flutter/ephemeral/
+.aider*

@@ -92,7 +92,7 @@ const TagTranslateInfoSchema = CollectionSchema(
   getId: _tagTranslateInfoGetId,
   getLinks: _tagTranslateInfoGetLinks,
   attach: _tagTranslateInfoAttach,
-  version: '3.3.0-dev.1',
+  version: '3.3.0',
 );
 
 int _tagTranslateInfoEstimateSize(

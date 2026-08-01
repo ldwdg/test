@@ -1196,27 +1196,26 @@ packages:
     dependency: "direct main"
     description:
       name: isar_community
-      sha256: "2d94a5a0f5aa50e201095f2c0152fcc0383e1b262f7500683bd6508040b4185b"
+      sha256: d92315e1862448f236489c2b2b1f9a7ad5ba2405f42d87216234be4fb2e1dd2d
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "3.3.0-dev.1"
+    version: "3.3.0"
   isar_community_flutter_libs:
     dependency: "direct main"
     description:
       name: isar_community_flutter_libs
-      sha256: "4e9fe0ff08fbf297c9a34cf5a3914c67ea07ab33eeeaee1d0dda3a285c38608e"
+      sha256: "3c072d8d77e820196fa23839b88481c50d903c73b3c0db6e647b29509d04fe3b"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "3.3.0-dev.1"
+    version: "3.3.0"
   isar_community_generator:
     dependency: "direct dev"
     description:
-      path: "packages/isar_community_generator"
-      ref: migrating-to-source_gen-3
-      resolved-ref: e08fcf852e3d9988b7cae0bf92a1671f3acbbcf8
-      url: "https://github.com/callumw-k/isar-community.git"
-    source: git
-    version: "3.3.0-dev.1"
+      name: isar_community_generator
+      sha256: "6ca1487b7551850f7896443aa8079a12b23cdf71a99dafb1f567c83d6e031042"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "3.3.0"
   isolate:
     dependency: "direct main"
     description:

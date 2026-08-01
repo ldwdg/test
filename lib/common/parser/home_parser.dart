@@ -22,8 +22,9 @@ EhHome parserEhHome(String response) {
   logger.d('limitTextElms: ${limitTextElms.map((e) => e.text).toList()}');
 
   if (limitTextElms.length < 3) {
-    final unlockCost =
-        int.tryParse(limitTextElms[0].text.replaceAll(',', '')) ?? 0;
+    final unlockCost = limitTextElms.isEmpty
+        ? 0
+        : (int.tryParse(limitTextElms[0].text.replaceAll(',', '')) ?? 0);
     logger.d('unlockCost: $unlockCost');
     return EhHome(
       highResolutionLimited: highResolutionLimited,

@@ -167,8 +167,8 @@ dependencies:
     git:
       url: https://github.com/google/flutter-desktop-embedding.git
       path: plugins/window_size
-  isar_community: ^3.3.0-dev.1
-  isar_community_flutter_libs: ^3.3.0-dev.1
+  isar_community: 3.3.0
+  isar_community_flutter_libs: 3.3.0
   dio_cache_interceptor: ^3.3.1
   dio_cache_interceptor_hive_store: ^4.0.0
   flutter_android_volume_keydown: #^1.0.0
@@ -229,11 +229,7 @@ dev_dependencies:
   json_serializable: ^6.0.1
   json_annotation: ^4.8.1
   copy_with_extension_gen: ^9.0.0
-  isar_community_generator: #^3.3.0-dev.1
-    git:
-      url: https://github.com/callumw-k/isar-community.git
-      ref: migrating-to-source_gen-3
-      path: packages/isar_community_generator
+  isar_community_generator: 3.3.0
   flutter_lints: ^6.0.0
 
 dependency_overrides:
