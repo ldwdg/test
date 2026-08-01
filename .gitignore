@@ -68,4 +68,10 @@ fonts/AppleColorEmoji.ttf
 fonts/NotoColorEmoji.ttf
 fonts/OpenMoji-Color.ttf
 
-.cursor
+.cursor.env
+lib/config/config.dart
+
+# local dev artifacts
+.env
+libisar.so
+ios/Flutter/ephemeral/

@@ -25,7 +25,7 @@ import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:system_network_proxy/system_network_proxy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const int kProxyPort = 4041;
 
@@ -209,7 +209,6 @@ class Global {
   }
 
   static Future<void> proxyInit() async {
-    SystemNetworkProxy.init();
     // final proxy = await getProxy();
     // // log proxy
     // logger.d('proxy $proxy');

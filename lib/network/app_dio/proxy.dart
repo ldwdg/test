@@ -4,7 +4,6 @@ import 'package:dio/io.dart';
 import 'package:eros_fe/index.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:get/get.dart';
-import 'package:system_network_proxy/system_network_proxy.dart';
 import 'package:system_proxy/system_proxy.dart';
 
 class HttpProxyAdapter extends IOHttpClientAdapter {
@@ -52,11 +51,15 @@ Future<String> getProxy({
       }
 
       if (GetPlatform.isDesktop) {
-        final proxyEnable = await SystemNetworkProxy.getProxyEnable();
-        final proxyServer = await SystemNetworkProxy.getProxyServer();
-        logger.d('proxyEnable: $proxyEnable proxyServer: $proxyServer');
-        if (proxyEnable && proxyServer.isNotEmpty) {
-          proxy = 'PROXY $proxyServer';
+        // Linux/桌面端改用环境变量代理（原 system_network_proxy 插件已移除）
+        final proxyEnv = Platform.environment['http_proxy'] ??
+            Platform.environment['HTTP_PROXY'] ??
+            Platform.environment['https_proxy'] ??
+            Platform.environment['HTTPS_PROXY'];
+        logger.d('proxyEnv: $proxyEnv');
+        final proxyUri = proxyEnv != null ? Uri.tryParse(proxyEnv) : null;
+        if (proxyUri != null && proxyUri.host.isNotEmpty) {
+          proxy = 'PROXY ${proxyUri.host}:${proxyUri.port}';
         } else {
           proxy = 'DIRECT';
         }
