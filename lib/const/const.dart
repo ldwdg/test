@@ -264,7 +264,7 @@ class EHConst {
   static const String REG_URL_PREFIX_THUMB_EX = r'https://(.*)?exhentai.org/t';
 
   static const String REG_URL_THUMB =
-      r'(https://.+)/([0-9a-f]{2}/[0-9a-f]{2}/([(0-9a-f]{40})-(\d+)-(\d+)-(\d+)-(\w+)\.(jpg|png|gif))';
+      r'(https?://.+?)/(?:t/)?([0-9a-f]{2}/[0-9a-f]{2}/[0-9a-f]{40}-\d+-\d+-\d+-\w+\.(?:jpg|png|gif))';
 
   static const String REG_509_URL = r'\.org/.+/509s?\.gif';
 
