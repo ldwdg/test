@@ -1,5 +1,9 @@
 # eros_fe 开发约定
 
+## 项目身份
+- 应用名: Eros-eHentai+（Android 包名 com.ldwdg.erosehentai，版本 2.0.0+567）
+- fork 自 erosTeam/eros_fe，开发用 Aider + DeepSeek
+
 ## 技术栈
 Flutter (stable, 3.44.8, 经 FVM 管理) + GetX 状态管理 + dio 网络 + HTML parser 抓取
 
@@ -8,6 +12,7 @@ Flutter (stable, 3.44.8, 经 FVM 管理) + GetX 状态管理 + dio 网络 + HTML
 - 静态检查: flutter analyze（改动后必须 0 error）
 - 运行 (Linux 桌面调试): flutter run -d linux
 - 测试: flutter test
+- Android 打包: flutter build apk --release（已配置签名，keystore 见 android/key.properties）
 
 ## 架构约定
 - 状态管理一律用 GetX：controller 继承 GetxController，页面用 GetView/Obx

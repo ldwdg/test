@@ -1,45 +1,45 @@
-# Eros-FE
-[English](https://github.com/3003h/blob/master/README.md) | 简体中文
+# Eros-eHentai+
 
-## 应用简介
+[English](README.md) | 简体中文
 
-一个 flutter 编写的 e-hentai app
+## 简介
 
-## iOS 安装
-1. 下载最新 ipa 文件 [Releases](https://github.com/3003h/Eros-FE/releases/latest).
-2. 使用 [AltStore](https://altstore.io) 之类的 app 安装到设备上. 或者直接使用 [AltStore.json](https://config-feh.vercel.app/AltStore.json)
+基于 Flutter 的非官方 [e-hentai](https://e-hentai.org) / [exhentai](https://exhentai.org) 客户端。
 
+这是 [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe) 的**个人定制 fork**，更名为 **Eros-eHentai+**（包名 `com.ldwdg.erosehentai`，版本 v2.0.0）。
 
-## 说明
+## 本 fork 的新变化
 
-UI 方面主要参考的[E-HentaiViewer](https://github.com/kayanouriko/E-HentaiViewer)
+- **更名**：应用名 `Eros-eHentai+`，Android 包名 `com.ldwdg.erosehentai`，版本 `2.0.0+567`
+- **移除** sentry_flutter（错误上报）与 system_network_proxy（Linux 插件不可用）——桌面端代理改为读取 `http_proxy`/`HTTPS_PROXY` 环境变量
+- **Isar** 升级到 3.3.0 正式版（兼容 Ubuntu 22.04 / glibc 2.35）
+- **新增 Linux 桌面支持**（上游只有 android/ios/macos/windows）
+- **Bug 修复**：
+  - 里站缩略图重定向到 ehgt.org 失效（上游 issue #17）——按当前 URL 格式重写正则
+  - 未登录时首页解析崩溃
+- `lib/config/config.dart` 本地明文维护（上游 git-crypt 加密文件无密钥无法编译）
 
+## 功能
 
-## 问题
+- [x] Popular / Watch / Home / Favorites
+- [x] 列表/瀑布流视图切换
+- [x] 画廊详情页
+- [x] 画廊图片浏览
+- [x] 自动翻页
+- [x] 表站/里站切换
+- [x] 标签搜索
+- [x] 登录（账号 / Cookie）
+- [x] 搜索 & 高级搜索
+- [x] 保存与分享图片
+- [x] 缓存优化
+- [x] 高级设置
+- [x] 评论、顶/踩
+- [x] 已看与用户标签
+- [x] 下载
 
-**滑动掉帧**
+## 截图
 
-- 一部分是flutter问题，一部分是开发水平问题，只能说尽力优化
-
-## 感谢
-
-应用借鉴和参考以下项目的部分代码和逻辑进行开发
-
-- [E-HentaiViewer](https://github.com/kayanouriko/E-HentaiViewer)
-- [EhViewer](https://github.com/seven332/EhViewer)
-
-ehentai译文数据库
-
-- [EhTagTranslation/Database](https://github.com/EhTagTranslation/Database)
-
-翻译
-- [KeepSOBP](https://github.com/KeepSOBP) -- 韩语翻译
-- [pursel](https://github.com/pursel), [Gigas002](https://github.com/Gigas002) -- 俄语翻译
-- [cristal-node](https://github.com/cristal-node) -- 日语翻译
-
-## 应用截图
-
-### 主页列表
+### 首页列表
 
 <img width="200" src="./screenshot/home.png" >
 
@@ -49,7 +49,7 @@ ehentai译文数据库
 
 ### 画廊
 
-<img width="200" src="./screenshot/gallery1.png" > <img width="200" src="./screenshot/gallery2.png" > 
+<img width="200" src="./screenshot/gallery1.png" > <img width="200" src="./screenshot/gallery2.png" >
 
 ### 搜索
 
@@ -59,45 +59,43 @@ ehentai译文数据库
 
 <img width="200" src="./screenshot/read1.png" > <img width="200" src="./screenshot/read2.png" >
 
-## 功能
+## 编译
 
-- [x] 热门,关注,主页,收藏
-- [x] 自定义分组，组合多种条件，分组独立样式
-- [x] 列表视图,瀑布流视图,网格视图等切换
-- [x] 浅色深色模式
-- [x] 画廊信息查看
-- [x] 图片浏览
-- [x] 自动翻页
-- [x] 里站表站切换
-- [x] 搜索，高级搜索，图片文件搜索
-- [x] 标签翻译，自动匹配标签搜索
-- [x] 用户登录
-- [x] 缓存优化
-- [x] 高级设置
-- [x] 生物认证锁定
-- [x] 发表评论，对评论赞和踩，评论翻译
-- [x] 评论显示论坛头像，快速@回复(带锚点)，自动显示引用评论
-- [x] EH设置，同步网站
-- [x] Mytag设置，编辑关注、隐藏、颜色、权重等。长按Tag快速设置
-- [x] 下载，下载原图，归档包下载，直接阅读已下载
-- [x] WebDAV同步历史，快速搜索，阅读进度，分组配置
-- [x] 可屏蔽带二维码的图片。可标记广告图片，记录pHash值，后续屏蔽相似图片
+环境要求：Flutter stable（3.44.8+）、Dart 3.12+
 
+```bash
+# 1. 准备本地配置
+cp lib/config/config.dart.sample lib/config/config.dart
+#    （按需填入自己的凭据；该文件已被 .gitignore 排除）
 
-## TODO
+# 2. 拉取依赖（国内可配镜像）
+flutter pub get
 
+# 3a. Linux 桌面运行
+flutter run -d linux
+#     依赖：clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
 
-## 依赖项目/插件（部分）
+# 3b. 构建 Android release 包（已签名）
+flutter build apk --release
+#     产物：build/app/outputs/flutter-apk/app-release.apk
+```
 
-- 网络 [dio](https://pub.dev/packages/dio)
-- 状态管理 [getx](https://pub.dev/packages/get)
-- 数据库 [sqflite](https://pub.dev/packages/sqflite)
-- 持久化 [shared_preferences](https://pub.dev/packages/shared_preferences)
-- 国际化 [intl](https://pub.dev/packages/intl)
-- 图片 [cached_network_image](https://pub.dev/packages/cached_network_image)、[extended_image](https://pub.dev/packages/extended_image)
+> 注：上游 README 提到的 `firebase_options.dart` 在本 fork 中已不再需要。
 
-## 编译相关
+## 开发方式
 
-如果需要自行编译的话 \
-复制 `lib/config.dart.sample` 为 `lib/config/config.dart` \
-复制 `lib/firebase_options_sample.dart` 为 `lib/firebase_options.dart`
+本项目使用 [Aider](https://aider.chat)（AI 结对编程）+ DeepSeek 进行迭代开发，代码约定见 `AGENTS.md`。
+
+## 致谢
+
+以下项目的代码与逻辑被参考使用：
+
+- [E-HentaiViewer](https://github.com/kayanouriko/E-HentaiViewer)
+- [EhViewer](https://github.com/seven332/EhViewer)
+- [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe)（上游）
+
+EhTagTranslation：[EhTagTranslation/Database](https://github.com/EhTagTranslation/Database)
+
+## 许可证
+
+Apache-2.0（与上游一致）

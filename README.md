@@ -1,49 +1,47 @@
-# Eros-FE
-English | [简体中文](https://github.com/3003h/Eros-FE/blob/master/README_cn.md)
+# Eros-eHentai+
+
+English | [简体中文](README_cn.md)
 
 ## Introduction
 
-An Unofficial e-hentai app make on flutter
+An unofficial [e-hentai](https://e-hentai.org) / [exhentai](https://exhentai.org) client built with Flutter.
 
-## 🔍 Translations Wanted 🔍
-Please submit a pull request if you want to help with translation.
+This is a **personal fork** of [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe), rebranded as **Eros-eHentai+** (`com.ldwdg.erosehentai`, v2.0.0).
 
-App Strings: `lib/l10n/{lang}.arb`
+## What's New in This Fork
 
-## Installation for iOS
-1. Get the ipa file from [Releases](https://github.com/3003h/Eros-FE/releases/latest).
-2. Use some software like [AltStore](https://altstore.io) to install the ipa file on your device. Or [AltStore.json](https://config-feh.vercel.app/AltStore.json)
+- **Rebranded**: app name `Eros-eHentai+`, Android package `com.ldwdg.erosehentai`, version `2.0.0+567`
+- **Removed** sentry_flutter (error reporting) and system_network_proxy (broken Linux plugin) — desktop proxy now reads `http_proxy`/`HTTPS_PROXY` env vars
+- **Isar** upgraded to 3.3.0 stable (compatible with Ubuntu 22.04 / glibc 2.35)
+- **Linux desktop support** added (upstream only shipped android/ios/macos/windows)
+- **Bug fixes**:
+  - ExHentai thumbnail redirect to ehgt.org not working (upstream issue #17) — regex rewritten for current URL format
+  - Home page parser crash when not logged in
+- `lib/config/config.dart` maintained locally as plaintext (upstream git-crypt encrypted file cannot compile without key)
 
-## Descriptions
+## Features
 
-The main reference for UI is [E-HentaiViewer](https://github.com/kayanouriko/E-HentaiViewer)
-
-Current Issues:
-
-- List sliding may have a small lag. Not as smooth as native apps
-- Does miss some essential features (still under development)
-
-## Thanks
-
-The code and logic of the following projects are used and referenced for development
-
-- [E-HentaiViewer](https://github.com/kayanouriko/E-HentaiViewer)
-- [EhViewer](https://github.com/seven332/EhViewer)
-
-EhTagTranslation
-
-- [EhTagTranslation/Database](https://github.com/EhTagTranslation/Database)
-
-Translation
-- [KeepSOBP](https://github.com/KeepSOBP) Korean translation
-- [pursel](https://github.com/pursel), [Gigas002](https://github.com/Gigas002) -- Russian translation
-- [cristal-node](https://github.com/cristal-node) -- Japanese translation
+- [x] Popular, Watch, Home, Favorites
+- [x] List view / waterfall view switch
+- [x] Gallery information view
+- [x] Gallery image view
+- [x] Automatically turn pages
+- [x] eh/ex switch
+- [x] Tag search
+- [x] Login (account / cookie)
+- [x] Search & advanced search
+- [x] Save and share images
+- [x] Cache optimization
+- [x] Advanced settings
+- [x] Post comments, vote up/down
+- [x] Watched and user tags
+- [x] Download
 
 ## Screenshot
 
 ### Home Page List
 
-<img width="200" src="./screenshot/home.png" > 
+<img width="200" src="./screenshot/home.png" >
 
 ### Settings
 
@@ -51,7 +49,7 @@ Translation
 
 ### Gallery
 
-<img width="200" src="./screenshot/gallery1.png" > <img width="200" src="./screenshot/gallery2.png" > 
+<img width="200" src="./screenshot/gallery1.png" > <img width="200" src="./screenshot/gallery2.png" >
 
 ### Search
 
@@ -61,40 +59,43 @@ Translation
 
 <img width="200" src="./screenshot/read1.png" > <img width="200" src="./screenshot/read2.png" >
 
-## Function
+## Build
 
-- [x] Popula,Watch,Home,Favorites
-- [x] List View,Waterfall View Switch
-- [x] Gallery information view
-- [x] Gallery Image view
-- [x] Automatically turn pages
-- [x] eh/ex switch
-- [x] Tag search
-- [x] Login
-- [x] Search
-- [x] Search term matching tag
-- [x] Advanced search
-- [x] Save and share images
-- [x] Cache optimization
-- [x] Advanced settings
-- [x] post comments, vote up ，vote down
-- [x] watched and user tag
-- [x] Download
+Requirements: Flutter stable (3.44.8+), Dart 3.12+
 
-## TODO
+```bash
+# 1. Prepare local config
+cp lib/config/config.dart.sample lib/config/config.dart
+#    (edit it with your own credentials if needed; it is gitignored)
 
+# 2. Get dependencies (China mirror optional)
+flutter pub get
 
-## Dependency projects/plugins (partial)
+# 3a. Run on Linux desktop
+flutter run -d linux
+#     requires: clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
 
-- network: [dio](https://pub.dev/packages/dio)
-- Status Management: [getx](https://pub.dev/packages/get)
-- db: [sqflite](https://pub.dev/packages/sqflite)
-- Data Persistence: [shared_preferences](https://pub.dev/packages/shared_preferences)
-- intl: [intl](https://pub.dev/packages/intl)
-- Image: [cached_network_image](https://pub.dev/packages/cached_network_image)、[extended_image](https://pub.dev/packages/extended_image)
+# 3b. Build Android release APK (signed)
+flutter build apk --release
+#     output: build/app/outputs/flutter-apk/app-release.apk
+```
 
-## About compiling
+> Note: upstream README mentions `firebase_options.dart` — it is no longer required in this fork.
 
-flutter version is the latest release version \
-rename `lib/config/config.dart.sample` to `lib/config/config.dart` \
-rename `lib/firebase_options_sample.dart` to `lib/firebase_options.dart`
+## Development Workflow
+
+This project is developed with [Aider](https://aider.chat) (AI pair programmer) + DeepSeek. See `AGENTS.md` for code conventions.
+
+## Thanks
+
+The code and logic of the following projects are used and referenced for development
+
+- [E-HentaiViewer](https://github.com/kayanouriko/E-HentaiViewer)
+- [EhViewer](https://github.com/seven332/EhViewer)
+- [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe) (upstream)
+
+EhTagTranslation: [EhTagTranslation/Database](https://github.com/EhTagTranslation/Database)
+
+## License
+
+Apache-2.0 (same as upstream)

@@ -76,3 +76,4 @@ lib/config/config.dart
 libisar.so
 ios/Flutter/ephemeral/
 .aider*
+android/key.properties
