@@ -1,1 +1,3 @@
-feat: 应用改名 Eros-eHentai+ 并升级至 2.0.0
+// This file is deprecated and should be deleted.
+// The active MainActivity is now at:
+// android/app/src/main/kotlin/com/ldwdg/erosehentai/MainActivity.kt
