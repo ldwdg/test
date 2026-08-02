@@ -738,6 +738,28 @@ class DownloadController extends GetxController {
         completeSerList.isNotEmpty ? completeSerList.reduce(max) : 0;
     logger.d('最大已完成序号: gid=${galleryTask.gid}, maxCompleteSer=$maxCompleteSer');
 
+    // 信号量并发控制（代替 executor）
+    int activeDownload = 0;
+    final List<Completer<void>> downloadWaiters = <Completer<void>>[];
+
+    Future<void> acquireSlot() async {
+      if (activeDownload < ehSettingService.multiDownload) {
+        activeDownload++;
+        return;
+      }
+      final Completer<void> completer = Completer<void>();
+      downloadWaiters.add(completer);
+      await completer.future;
+      activeDownload++;
+    }
+
+    void releaseSlot() {
+      activeDownload--;
+      if (downloadWaiters.isNotEmpty) {
+        downloadWaiters.removeAt(0).complete();
+      }
+    }
+
     // 记录当前任务是否已经等待过一次 showKey（只允许等待一次，避免后续图片串行阻塞）
     bool waitedForShowKey = false;
 
@@ -783,101 +805,130 @@ class DownloadController extends GetxController {
         logger.t('已等待过 showKey，跳过等待: gid=${galleryTask.gid}, index=$index');
       }
 
-      dState.executor.scheduleTask(() async {
-        dState.activeTaskCounts[galleryTask.gid] =
-            (dState.activeTaskCounts[galleryTask.gid] ?? 0) + 1;
-        try {
-          try {
-            await Future.sync(() async {
-              logger.d('开始处理图片任务: gid=${galleryTask.gid}, ser=$itemSer');
-              final GalleryImage? preImage =
-                  await imageProcessor.checkAndGetImageList(
-                galleryTask.gid,
-                itemSer,
-                galleryTask.fileCount,
-                groupCount!,
-                galleryTask.url,
-                cancelToken: cancelToken,
-                addAllImagesCallback: _addAllImages,
-                getImageObjCallback: _getImageObj,
-              );
-
-              if (preImage != null) {
-                logger.t(
-                    '获取到图片信息: gid=${galleryTask.gid}, ser=$itemSer, imageUrl=${preImage.imageUrl}');
-                final int maxSer = galleryTask.fileCount + 1;
-
-                try {
-                  logger.t('开始下载图片: gid=${galleryTask.gid}, ser=$itemSer');
-                  await imageProcessor.downloadImageFlow(
-                    preImage,
-                    oriImageTask,
-                    galleryTask.gid,
-                    downloadParentPath,
-                    maxSer,
-                    showKey: dState.showKeyMap[galleryTask.gid],
-                    downloadOrigImage: galleryTask.downloadOrigImage ?? false,
-                    cancelToken: cancelToken,
-                    reDownload: itemSer > 1 && itemSer < maxCompleteSer + 2,
-                    onDownloadCompleteWithFileName: (String fileName) =>
-                        _onDownloadComplete(
-                      fileName,
-                      galleryTask.gid,
-                      itemSer,
-                    ),
-                    putImageTaskCallback: _putImageTask,
-                  );
-                  logger.t('下载图片完成: gid=${galleryTask.gid}, ser=$itemSer');
-                } on DioException catch (e) {
-                  // 忽略 [DioErrorType.cancel]
-                  if (!CancelToken.isCancel(e)) {
-                    logger.e(
-                        '下载图片Dio错误: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
-                    rethrow;
-                  }
-                  logger.t('下载图片取消: gid=${galleryTask.gid}, ser=$itemSer');
-                } on EhError catch (e) {
-                  logger.e(
-                      '下载图片EH错误: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
-                  if (e.type == EhErrorType.image509) {
-                    show509Toast();
-                    dState.executor.close();
-                    resetConcurrency(gid: galleryTask.gid);
-                    _updateErrInfo(galleryTask.gid, '509');
-                  }
-                  rethrow;
-                } on HttpException catch (e) {
-                  logger.e(
-                      '下载图片HTTP错误: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
-                  if (e is BadRequestException && e.code == 429) {
-                    show429Toast();
-                    dState.executor.close();
-                    resetConcurrency(gid: galleryTask.gid);
-                    _updateErrInfo(galleryTask.gid, '429');
-                  }
-                  rethrow;
-                } catch (e) {
-                  logger
-                      .e('下载图片未知错误: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
-                  rethrow;
-                }
-              } else {
-                logger.e('获取图片信息失败: gid=${galleryTask.gid}, ser=$itemSer');
-              }
-            }).timeout(const Duration(seconds: 120));
-          } on TimeoutException catch (e) {
-            logger.e('图片任务超时: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
-          }
-        } finally {
-          dState.activeTaskCounts[galleryTask.gid] =
-              (dState.activeTaskCounts[galleryTask.gid] ?? 1) - 1;
-          if (dState.activeTaskCounts[galleryTask.gid] == 0) {
-            dState.activeTaskCounts.remove(galleryTask.gid);
-          }
-        }
-      });
+      // 新并发控制：不再使用 executor.scheduleTask，而是直接启动异步任务
+      unawaited(_processImageTask(
+        galleryTask: galleryTask,
+        itemSer: itemSer,
+        oriImageTask: oriImageTask,
+        cancelToken: cancelToken,
+        groupCount: groupCount!,
+        downloadParentPath: downloadParentPath,
+        maxCompleteSer: maxCompleteSer,
+        acquireSlot: acquireSlot,
+        releaseSlot: releaseSlot,
+      ));
     }
     logger.d('所有图片任务已加入队列: gid=${galleryTask.gid}');
+  }
+
+  // 抽出的图片处理任务，使用信号量并发控制
+  Future<void> _processImageTask({
+    required GalleryTask galleryTask,
+    required int itemSer,
+    required GalleryImageTask? oriImageTask,
+    required CancelToken cancelToken,
+    required int groupCount,
+    required String downloadParentPath,
+    required int maxCompleteSer,
+    required Future<void> Function() acquireSlot,
+    required void Function() releaseSlot,
+  }) async {
+    await acquireSlot();
+    try {
+      dState.activeTaskCounts[galleryTask.gid] =
+          (dState.activeTaskCounts[galleryTask.gid] ?? 0) + 1;
+      try {
+        try {
+          await Future.sync(() async {
+            logger.d('开始处理图片任务: gid=${galleryTask.gid}, ser=$itemSer');
+            final GalleryImage? preImage =
+                await imageProcessor.checkAndGetImageList(
+              galleryTask.gid,
+              itemSer,
+              galleryTask.fileCount,
+              groupCount,
+              galleryTask.url,
+              cancelToken: cancelToken,
+              addAllImagesCallback: _addAllImages,
+              getImageObjCallback: _getImageObj,
+            );
+
+            if (preImage != null) {
+              logger.t(
+                  '获取到图片信息: gid=${galleryTask.gid}, ser=$itemSer, imageUrl=${preImage.imageUrl}');
+              final int maxSer = galleryTask.fileCount + 1;
+
+              try {
+                logger.t('开始下载图片: gid=${galleryTask.gid}, ser=$itemSer');
+                await imageProcessor.downloadImageFlow(
+                  preImage,
+                  oriImageTask,
+                  galleryTask.gid,
+                  downloadParentPath,
+                  maxSer,
+                  showKey: dState.showKeyMap[galleryTask.gid],
+                  downloadOrigImage: galleryTask.downloadOrigImage ?? false,
+                  cancelToken: cancelToken,
+                  reDownload: itemSer > 1 && itemSer < maxCompleteSer + 2,
+                  onDownloadCompleteWithFileName: (String fileName) =>
+                      _onDownloadComplete(
+                    fileName,
+                    galleryTask.gid,
+                    itemSer,
+                  ),
+                  putImageTaskCallback: _putImageTask,
+                );
+                logger.t('下载图片完成: gid=${galleryTask.gid}, ser=$itemSer');
+              } on DioException catch (e) {
+                // 忽略 [DioErrorType.cancel]
+                if (!CancelToken.isCancel(e)) {
+                  logger.e(
+                      '下载图片Dio错误: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
+                  rethrow;
+                }
+                logger.t('下载图片取消: gid=${galleryTask.gid}, ser=$itemSer');
+              } on EhError catch (e) {
+                logger.e(
+                    '下载图片EH错误: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
+                if (e.type == EhErrorType.image509) {
+                  show509Toast();
+                  dState.executor.close();
+                  resetConcurrency(gid: galleryTask.gid);
+                  _updateErrInfo(galleryTask.gid, '509');
+                }
+                rethrow;
+              } on HttpException catch (e) {
+                logger.e(
+                    '下载图片HTTP错误: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
+                if (e is BadRequestException && e.code == 429) {
+                  show429Toast();
+                  dState.executor.close();
+                  resetConcurrency(gid: galleryTask.gid);
+                  _updateErrInfo(galleryTask.gid, '429');
+                }
+                rethrow;
+              } catch (e) {
+                logger
+                    .e('下载图片未知错误: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
+                rethrow;
+              }
+            } else {
+              logger.e('获取图片信息失败: gid=${galleryTask.gid}, ser=$itemSer');
+            }
+          }).timeout(const Duration(seconds: 120));
+        } on TimeoutException catch (e) {
+          logger.e('图片任务超时: gid=${galleryTask.gid}, ser=$itemSer, error=$e');
+        }
+      } finally {
+        dState.activeTaskCounts[galleryTask.gid] =
+            (dState.activeTaskCounts[galleryTask.gid] ?? 1) - 1;
+        if (dState.activeTaskCounts[galleryTask.gid] == 0) {
+          dState.activeTaskCounts.remove(galleryTask.gid);
+        }
+      }
+    } finally {
+      releaseSlot();
+    }
   }
 
   void _updateErrInfo(int gid, String error) {
