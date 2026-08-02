@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cookie_jar/cookie_jar.dart';
@@ -797,7 +798,7 @@ Future<void> ehDownload({
     );
 
     if (response.statusCode == null || response.statusCode! >= 400) {
-      throw BadResponseException(code: response.statusCode ?? -1);
+      throw BadResponseException(response.data?.toString());
     }
 
     final ResponseBody body = response.data!;
