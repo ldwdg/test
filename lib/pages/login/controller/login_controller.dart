@@ -199,14 +199,14 @@ class LoginController extends GetxController {
     if (memberId == null) {
       return;
     }
-    // 异步获取昵称和头像
+    // 异步获取昵称和头像，失败时静默跳过，不影响登录状态
     logger.d('异步获取昵称和头像');
     late User? info;
     try {
       info = await getUserInfo(memberId);
     } catch (e) {
-      showToast('$e');
-      rethrow;
+      logger.d('获取用户信息失败: $e');
+      return;
     }
 
     userController.user(userController.user.value.copyWith(

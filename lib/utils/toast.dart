@@ -12,6 +12,8 @@ void showToast(
   oktoast.ToastPosition? position =
       const oktoast.ToastPosition(align: Alignment.bottomCenter, offset: -60.0),
 }) {
+  // 截断过长的错误提示，避免 toast 溢出
+  final String displayMsg = msg.length > 200 ? '${msg.substring(0, 200)}...' : msg;
   final Widget widget = CupertinoTheme(
     data: Get.find<ThemeService>().themeData!,
     child: Container(
@@ -37,7 +39,9 @@ void showToast(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                msg,
+                displayMsg,
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
                 textScaler: const TextScaler.linear(0.8),
                 style: CupertinoTheme.of(Get.context!).textTheme.textStyle,
               ),
