@@ -294,7 +294,8 @@ Future<GalleryImage?> fetchImageInfoByApi(
   final String reqJsonStr = jsonEncode(reqMap);
 
   // 请求api
-  final response = await postEhApi(reqJsonStr, forceRefresh: refresh);
+  final response = await postEhApi(reqJsonStr,
+      forceRefresh: refresh, bypassRateLimit: true);
 
   logger.t('fetchImageInfoByApi: response $response');
 
@@ -346,7 +347,8 @@ Future<GalleryImage?> fetchImageInfoByHtml(
     httpTransformer: isMpv
         ? GalleryMpvImageHttpTransformer(mpvSer, sourceId: sourceId)
         : GalleryImageHttpTransformer(),
-    options: getCacheOptions(refresh: refresh),
+    options: getCacheOptions(refresh: refresh)
+      ..extra = {'bypassRateLimit': true},
     cancelToken: cancelToken,
   );
 
@@ -1133,6 +1135,7 @@ Future<ArchiverProvider> getArchiver(
 Future<String> postEhApi(
   String data, {
   bool forceRefresh = true,
+  bool bypassRateLimit = false,
 }) async {
   const String url = '/api.php';
   DioHttpClient dioHttpClient = DioHttpClient(
@@ -1142,7 +1145,8 @@ Future<String> postEhApi(
   DioHttpResponse httpResponse = await dioHttpClient.post(
     url,
     data: data,
-    options: getCacheOptions(refresh: forceRefresh),
+    options: getCacheOptions(refresh: forceRefresh)
+      ..extra = {'bypassRateLimit': bypassRateLimit},
   );
   if (httpResponse.ok && httpResponse.data is String) {
     return httpResponse.data as String;

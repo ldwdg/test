@@ -34,6 +34,13 @@ class RateLimitInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
+    // 下载流程的图片信息请求绕过限流
+    if (options.extra?['bypassRateLimit'] == true ||
+        options.uri.path.contains('/s/')) {
+      handler.next(options);
+      return;
+    }
+
     final now = DateTime.now();
     String host = options.uri.host;
 
