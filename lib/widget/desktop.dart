@@ -1,4 +1,5 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:eros_fe/const/const.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:window_size/window_size.dart';
@@ -40,7 +41,7 @@ class Desktop extends StatelessWidget {
                         )
                       : null;
                   if (title != '') {
-                    setWindowTitle('$title · Eros-N');
+                    setWindowTitle('$title · ${EHConst.appTitle}');
                   }
 
                   return WindowTitleBarBox(
