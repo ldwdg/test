@@ -12,6 +12,8 @@ class HttpProxyAdapter extends IOHttpClientAdapter {
       final client = createProxyHttpClient();
       // 增大连接空闲时间，复用代理连接，避免每次下载重新握手导致 0 B/s
       client.idleTimeout = const Duration(seconds: 60);
+      // 放开连接池限制（下载并发 9 需要 ≥9）
+      client.maxConnectionsPerHost = 16;
       if (proxy.isNotEmpty) {
         // logger.d('set proxy $proxy');
         client.findProxy = (url) => proxy;
