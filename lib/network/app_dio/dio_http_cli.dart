@@ -16,6 +16,8 @@ class DioHttpClient {
 
   late final AppDio _dio;
 
+  AppDio get dio => _dio;
+
   Future<DioHttpResponse> get(String uri,
       {Map<String, dynamic>? queryParameters,
       Options? options,
