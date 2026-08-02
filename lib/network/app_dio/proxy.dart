@@ -10,6 +10,8 @@ class HttpProxyAdapter extends IOHttpClientAdapter {
   HttpProxyAdapter({required this.proxy, bool? skipCertificate}) {
     createHttpClient = () {
       final client = createProxyHttpClient();
+      // 增大连接空闲时间，复用代理连接，避免每次下载重新握手导致 0 B/s
+      client.idleTimeout = const Duration(seconds: 60);
       if (proxy.isNotEmpty) {
         // logger.d('set proxy $proxy');
         client.findProxy = (url) => proxy;

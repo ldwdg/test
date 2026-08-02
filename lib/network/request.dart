@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
@@ -772,7 +773,7 @@ Future<void> ehDownload({
   } else {
     downloadUrl = url;
   }
-  logger.t('downloadUrl $downloadUrl');
+  logger.d('download start: $downloadUrl');
 
   late final DioSavePath dioSavePath;
   if (savePath != null) {
@@ -783,23 +784,88 @@ Future<void> ehDownload({
     throw ArgumentError('savePath and savePathBuild is null');
   }
 
+  // 1. 绕开 dio.download 的流式包装，手动读取大 buffer
+  final Options options = getCacheOptions(refresh: false, forceCache: false)
+      .copyWith(responseType: ResponseType.stream);
+
+  File? tempFile;
   try {
-    await dioHttpClient.download(
+    final Response<ResponseBody> response = await dioHttpClient.dio.get<ResponseBody>(
       downloadUrl,
-      dioSavePath,
-      deleteOnError: deleteOnError,
-      onReceiveProgress: (int count, int total) {
-        progressCallback?.call(count, total);
-        if (count == total) {
-          onDownloadComplete?.call();
-        }
-      },
+      options: options,
       cancelToken: cancelToken,
-      options: getCacheOptions(refresh: false, forceCache: false),
     );
-  } on CancelException catch (e) {
-    logger.d('cancel');
-  } on Exception catch (e) {
+
+    if (response.statusCode == null || response.statusCode! >= 400) {
+      throw BadResponseException(code: response.statusCode ?? -1);
+    }
+
+    final ResponseBody body = response.data!;
+
+    // 根据响应头确定最终保存路径
+    final String filePath = dioSavePath.path(response.headers);
+    tempFile = File(filePath);
+    if (!tempFile.parent.existsSync()) {
+      tempFile.parent.createSync(recursive: true);
+    }
+
+    final IOSink sink = tempFile.openWrite();
+    final Uint8List buffer = Uint8List(256 * 1024);
+    int bufferLen = 0;
+    int total = 0;
+    final int? contentLength = body.contentLength;
+
+    try {
+      await for (final Uint8List chunk in body.stream) {
+        if (total == 0) {
+          logger.d('download first chunk received: $downloadUrl');
+        }
+
+        // 累积到 256KB 缓冲区后写入，减少文件系统调用
+        if (chunk.length >= buffer.length) {
+          if (bufferLen > 0) {
+            sink.add(Uint8List.sublistView(buffer, 0, bufferLen));
+            bufferLen = 0;
+          }
+          sink.add(chunk);
+        } else {
+          if (bufferLen + chunk.length > buffer.length) {
+            sink.add(Uint8List.sublistView(buffer, 0, bufferLen));
+            bufferLen = 0;
+          }
+          buffer.setRange(bufferLen, bufferLen + chunk.length, chunk);
+          bufferLen += chunk.length;
+          if (bufferLen == buffer.length) {
+            sink.add(buffer);
+            bufferLen = 0;
+          }
+        }
+
+        total += chunk.length;
+        progressCallback?.call(total, contentLength ?? -1);
+
+        if (cancelToken?.isCancelled ?? false) {
+          throw CancelException('download canceled');
+        }
+      }
+
+      if (bufferLen > 0) {
+        sink.add(Uint8List.sublistView(buffer, 0, bufferLen));
+      }
+    } finally {
+      await sink.flush();
+      await sink.close();
+    }
+
+    logger.d('download completed: $downloadUrl, total: $total');
+    onDownloadComplete?.call();
+  } catch (e) {
+    logger.e('download error: $downloadUrl, error: $e');
+    if (deleteOnError && tempFile != null && tempFile.existsSync()) {
+      try {
+        await tempFile.delete();
+      } catch (_) {}
+    }
     rethrow;
   }
 }
