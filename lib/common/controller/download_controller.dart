@@ -738,6 +738,9 @@ class DownloadController extends GetxController {
         completeSerList.isNotEmpty ? completeSerList.reduce(max) : 0;
     logger.d('最大已完成序号: gid=${galleryTask.gid}, maxCompleteSer=$maxCompleteSer');
 
+    // 记录当前任务是否已经等待过一次 showKey（只允许等待一次，避免后续图片串行阻塞）
+    bool waitedForShowKey = false;
+
     // 循环进行下载图片
     logger.d('开始循环下载: gid=${galleryTask.gid}, 文件总数=${galleryTask.fileCount}');
     for (int index = 0; index < galleryTask.fileCount; index++) {
@@ -764,8 +767,9 @@ class DownloadController extends GetxController {
 
       final showKey = dState.showKeyMap[galleryTask.gid];
 
-      if (index > 0 && showKey == null) {
-        logger.d('等待showKey（超时10秒）: gid=${galleryTask.gid}, index=$index');
+      if (!waitedForShowKey && index > 0 && showKey == null) {
+        waitedForShowKey = true;
+        logger.d('等待showKey（超时10秒，仅此一次）: gid=${galleryTask.gid}, index=$index');
         final completer = dState.showKeyCompleteMap[galleryTask.gid] = Completer<bool>();
         try {
           await completer.future.timeout(const Duration(seconds: 10));
@@ -774,6 +778,9 @@ class DownloadController extends GetxController {
         }
         logger.d(
             '继续执行，当前showKey: gid=${galleryTask.gid}, showKey=${dState.showKeyMap[galleryTask.gid] ?? 'null（自足获取）'}');
+      } else if (index > 0 && showKey == null) {
+        // 已经等待过一次，后续图片不再等待，直接交由任务内部自足获取
+        logger.t('已等待过 showKey，跳过等待: gid=${galleryTask.gid}, index=$index');
       }
 
       dState.executor.scheduleTask(() async {
