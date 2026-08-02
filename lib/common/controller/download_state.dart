@@ -55,6 +55,12 @@ class DownloadState {
   // 重试计数器：key: "gid_ser", value: 重试次数
   final Map<String, int> reDownloadCounts = {};
 
+  // 活跃下载任务计数（gid -> 当前正在 executor 中处理的图片任务数）
+  final Map<int, int> activeTaskCounts = {};
+
+  // 重试冷却时间（gid -> 上次重试时间）
+  final Map<int, DateTime> retryCooldown = {};
+
   // 画廊任务额外信息 - 新增
   final Map<int, Map<String, dynamic>> galleryTaskExtraInfo = {};
 }

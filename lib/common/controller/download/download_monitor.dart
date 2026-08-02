@@ -103,6 +103,14 @@ class DownloadMonitor {
     int periodSeconds = 1,
     Function? onRetryNeededCallback,
   }) {
+    // 排队任务不判停滞——仅当该 gid 有活跃下载任务时才处理
+    final bool hasActiveTask = (dState.activeTaskCounts[gid] ?? 0) > 0;
+    if (!hasActiveTask) {
+      // 没有进行中的下载，跳过停滞检测（可能是排队中）
+      dState.noSpeed[gid] = 0;
+      return;
+    }
+
     // 获取当前总下载量
     final int totCurCount = dState.downloadCounts.entries
         .where((element) => element.key.startsWith('${gid}_'))
@@ -140,6 +148,17 @@ class DownloadMonitor {
 
       // 达到重试阈值时执行重试
       if ((dState.noSpeed[gid] ?? 0) > kRetryThresholdTime) {
+        // 检查 30 秒重试冷却
+        final DateTime now = DateTime.now();
+        final DateTime? lastRetry = dState.retryCooldown[gid];
+        if (lastRetry != null &&
+            now.difference(lastRetry) < const Duration(seconds: 30)) {
+          // 冷却期内不再重试
+          dState.noSpeed[gid] = 0;
+          return;
+        }
+        dState.retryCooldown[gid] = now;
+
         logger.d('monitor 检测到下载停滞，正在重试 gid:$gid, 时间:${DateTime.now()}');
 
         // 如果提供了回调则调用
