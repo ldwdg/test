@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http;
 class CronetDioAdapter implements HttpClientAdapter {
   CronetDioAdapter({CronetEngine? engine})
       : _client = engine != null
-            ? CronetClient.defaultCronetEngine()
+            ? CronetClient(engine: engine)
             : CronetClient.defaultCronetEngine();
 
   final CronetClient _client;
@@ -25,7 +25,7 @@ class CronetDioAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     if (options.data is FormData) {
-      return _sendMultipart(options);
+      return _sendMultipart(options, cancelFuture);
     }
 
     final request = http.Request(options.method, options.uri);
@@ -45,11 +45,18 @@ class CronetDioAdapter implements HttpClientAdapter {
       request.bodyBytes = bytes;
     }
 
-    final streamed = await _client.send(request);
-    return _toResponseBody(streamed);
+    final streamed = await _sendWithCancel(
+      () => _client.send(request),
+      options,
+      cancelFuture,
+    );
+    return _toResponseBody(streamed, cancelFuture);
   }
 
-  Future<ResponseBody> _sendMultipart(RequestOptions options) async {
+  Future<ResponseBody> _sendMultipart(
+    RequestOptions options,
+    Future<void>? cancelFuture,
+  ) async {
     final fd = options.data as FormData;
     final mReq = http.MultipartRequest(options.method, options.uri);
     options.headers.forEach((k, v) {
@@ -66,17 +73,70 @@ class CronetDioAdapter implements HttpClientAdapter {
         filename: f.value.filename,
       ));
     }
-    final streamed = await _client.send(mReq);
-    return _toResponseBody(streamed);
+    final streamed = await _sendWithCancel(
+      () => _client.send(mReq),
+      options,
+      cancelFuture,
+    );
+    return _toResponseBody(streamed, cancelFuture);
   }
 
-  ResponseBody _toResponseBody(http.StreamedResponse streamed) {
+  Future<http.StreamedResponse> _sendWithCancel(
+    Future<http.StreamedResponse> Function() sendFn,
+    RequestOptions options,
+    Future<void>? cancelFuture,
+  ) async {
+    if (cancelFuture == null) {
+      return sendFn();
+    }
+
+    final cancelCompleter = Completer<http.StreamedResponse>();
+    cancelFuture.then((_) {
+      if (!cancelCompleter.isCompleted) {
+        cancelCompleter.completeError(
+          DioException(
+            requestOptions: options,
+            type: DioExceptionType.cancel,
+            error: 'Request cancelled',
+          ),
+        );
+      }
+    });
+
+    final sendFuture = sendFn();
+    return await Future.any<http.StreamedResponse>([
+      sendFuture,
+      cancelCompleter.future,
+    ]);
+  }
+
+  ResponseBody _toResponseBody(
+    http.StreamedResponse streamed,
+    Future<void>? cancelFuture,
+  ) {
     final headers = <String, List<String>>{};
     streamed.headers.forEach((k, v) {
       headers[k] = [v];
     });
+
+    // 包装原始流，使 cancelFuture 触发时能主动取消订阅，停止读取网络数据
+    final controller = StreamController<Uint8List>();
+    final subscription = streamed.stream.listen(
+      (chunk) => controller.add(Uint8List.fromList(chunk)),
+      onDone: () => controller.close(),
+      onError: (Object e, StackTrace st) => controller.addError(e, st),
+      cancelOnError: true,
+    );
+
+    cancelFuture?.then((_) {
+      subscription.cancel();
+      if (!controller.isClosed) {
+        controller.close();
+      }
+    });
+
     return ResponseBody(
-      streamed.stream.map((chunk) => Uint8List.fromList(chunk)),
+      controller.stream,
       streamed.statusCode,
       headers: headers,
       statusMessage: streamed.reasonPhrase,
