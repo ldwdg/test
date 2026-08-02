@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cronet_http/cronet_http.dart';
 import 'package:dio/io.dart';
 import 'package:eros_fe/index.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
@@ -9,6 +10,11 @@ import 'package:system_proxy/system_proxy.dart';
 class HttpProxyAdapter extends IOHttpClientAdapter {
   HttpProxyAdapter({required this.proxy, bool? skipCertificate}) {
     createHttpClient = () {
+      if (Platform.isAndroid) {
+        // Android 使用 Cronet 网络栈（HTTP/2 + QUIC）
+        return CronetClient();
+      }
+
       final client = createProxyHttpClient();
       // 增大连接空闲时间，复用代理连接，避免每次下载重新握手导致 0 B/s
       client.idleTimeout = const Duration(seconds: 60);
