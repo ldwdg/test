@@ -1,4 +1,4 @@
-# Eros-eHentai+
+# Eros-EH+
 
 [English](README.md) | 简体中文
 
@@ -6,11 +6,11 @@
 
 基于 Flutter 的非官方 [e-hentai](https://e-hentai.org) / [exhentai](https://exhentai.org) 客户端。
 
-这是 [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe) 的**个人定制 fork**，更名为 **Eros-eHentai+**（包名 `com.ldwdg.erosehentai`，版本 v2.0.0）。
+这是 [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe) 的**个人定制 fork**，更名为 **Eros-EH+**（包名 `com.ldwdg.erosehentai`，版本 v2.0.0）。
 
 ## 本 fork 的新变化
 
-- **更名**：应用名 `Eros-eHentai+`，Android 包名 `com.ldwdg.erosehentai`，版本 `2.0.0+567`
+- **更名**：应用名 `Eros-EH+`，Android 包名 `com.ldwdg.erosehentai`，版本 `2.0.0+567`
 - **移除** sentry_flutter（错误上报）与 system_network_proxy（Linux 插件不可用）——桌面端代理改为读取 `http_proxy`/`HTTPS_PROXY` 环境变量
 - **Isar** 升级到 3.3.0 正式版（兼容 Ubuntu 22.04 / glibc 2.35）
 - **新增 Linux 桌面支持**（上游只有 android/ios/macos/windows）

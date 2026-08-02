@@ -1,7 +1,7 @@
 # eros_fe 开发约定
 
 ## 项目身份
-- 应用名: Eros-eHentai+（Android 包名 com.ldwdg.erosehentai，版本 2.0.0+567）
+- 应用名: Eros-EH+（Android 包名 com.ldwdg.erosehentai，版本 2.0.0+567）
 - fork 自 erosTeam/eros_fe，开发用 Aider + DeepSeek
 
 ## 技术栈

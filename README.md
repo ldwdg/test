@@ -1,4 +1,4 @@
-# Eros-eHentai+
+# Eros-EH+
 
 English | [简体中文](README_cn.md)
 
@@ -6,11 +6,11 @@ English | [简体中文](README_cn.md)
 
 An unofficial [e-hentai](https://e-hentai.org) / [exhentai](https://exhentai.org) client built with Flutter.
 
-This is a **personal fork** of [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe), rebranded as **Eros-eHentai+** (`com.ldwdg.erosehentai`, v2.0.0).
+This is a **personal fork** of [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe), rebranded as **Eros-EH+** (`com.ldwdg.erosehentai`, v2.0.0).
 
 ## What's New in This Fork
 
-- **Rebranded**: app name `Eros-eHentai+`, Android package `com.ldwdg.erosehentai`, version `2.0.0+567`
+- **Rebranded**: app name `Eros-EH+`, Android package `com.ldwdg.erosehentai`, version `2.0.0+567`
 - **Removed** sentry_flutter (error reporting) and system_network_proxy (broken Linux plugin) — desktop proxy now reads `http_proxy`/`HTTPS_PROXY` env vars
 - **Isar** upgraded to 3.3.0 stable (compatible with Ubuntu 22.04 / glibc 2.35)
 - **Linux desktop support** added (upstream only shipped android/ios/macos/windows)
