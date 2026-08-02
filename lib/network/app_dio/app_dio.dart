@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:cookie_jar/cookie_jar.dart';
+import 'package:cronet_http/cronet_http.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
@@ -65,12 +66,17 @@ class AppDio with DioMixin implements Dio {
 
     logger.t('dioConfig ${dioConfig?.toString()}');
 
-    httpClientAdapter = Get.find<EhSettingService>().nativeHttpClientAdapter
-        ? NativeAdapter()
-        : AppHttpAdapter(
-            proxy: dioConfig?.proxy ?? '',
-            skipCertificate: dioConfig?.domainFronting,
-          );
+    if (Platform.isAndroid) {
+      // Android 使用 Cronet 网络栈（HTTP/2 + QUIC）
+      httpClientAdapter = CronetHttpClientAdapter();
+    } else {
+      httpClientAdapter = Get.find<EhSettingService>().nativeHttpClientAdapter
+          ? NativeAdapter()
+          : AppHttpAdapter(
+              proxy: dioConfig?.proxy ?? '',
+              skipCertificate: dioConfig?.domainFronting,
+            );
+    }
     // httpClientAdapter = AppHttpAdapter(
     //   proxy: dioConfig?.proxy ?? '',
     //   skipCertificate: dioConfig?.domainFronting,
