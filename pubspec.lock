@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: analyzer
-      sha256: f4ad0fea5f102201015c9aae9d93bc02f75dd9491529a8c21f88d17a8523d44c
+      sha256: "974859dc0ff5f37bc4313244b3218c791810d03ab3470a579580279ba971a48d"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "7.6.0"
+    version: "7.7.1"
   archive:
     dependency: "direct main"
     description:
@@ -363,7 +363,7 @@ packages:
     source: hosted
     version: "9.1.1"
   cronet_http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cronet_http
       sha256: "9da9860b409d71e4b8259e3dee631176d499dee23e7cd45a3024ebd5181997d8"

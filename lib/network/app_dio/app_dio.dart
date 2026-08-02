@@ -12,6 +12,7 @@ import 'package:eros_fe/common/service/dns_service.dart';
 import 'package:eros_fe/common/service/ehsetting_service.dart';
 import 'package:eros_fe/const/const.dart';
 import 'package:eros_fe/network/app_dio/proxy.dart';
+import 'package:eros_fe/network/app_dio/cronet_dio_adapter.dart';
 import 'package:eros_fe/network/dio_interceptor/domain_fronting/domain_fronting.dart';
 import 'package:eros_fe/network/dio_interceptor/eh_cookie_interceptor/eh_cookie_interceptor.dart';
 import 'package:eros_fe/network/dio_interceptor/rate_limit/rate_limit_interceptor.dart';
@@ -65,12 +66,17 @@ class AppDio with DioMixin implements Dio {
 
     logger.t('dioConfig ${dioConfig?.toString()}');
 
-    httpClientAdapter = Get.find<EhSettingService>().nativeHttpClientAdapter
-        ? NativeAdapter()
-        : AppHttpAdapter(
-            proxy: dioConfig?.proxy ?? '',
-            skipCertificate: dioConfig?.domainFronting,
-          );
+    if (Platform.isAndroid && !(Get.find<EhSettingService>().nativeHttpClientAdapter)) {
+      // Android 使用 Cronet 网络栈（HTTP/2 + QUIC），提升下载吞吐
+      httpClientAdapter = CronetDioAdapter();
+    } else {
+      httpClientAdapter = Get.find<EhSettingService>().nativeHttpClientAdapter
+          ? NativeAdapter()
+          : AppHttpAdapter(
+              proxy: dioConfig?.proxy ?? '',
+              skipCertificate: dioConfig?.domainFronting,
+            );
+    }
     // httpClientAdapter = AppHttpAdapter(
     //   proxy: dioConfig?.proxy ?? '',
     //   skipCertificate: dioConfig?.domainFronting,
