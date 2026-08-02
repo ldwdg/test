@@ -63,7 +63,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "all_thumbnails": MessageLookupByLibrary.simpleMessage("所有預覽"),
         "allow_media_scan": MessageLookupByLibrary.simpleMessage("允許媒體掃描"),
         "always": MessageLookupByLibrary.simpleMessage("總是如此"),
-        "app_title": MessageLookupByLibrary.simpleMessage("Eros-FE"),
+        "app_title": MessageLookupByLibrary.simpleMessage("Eros-EH+"),
         "ask_me": MessageLookupByLibrary.simpleMessage("每次都詢問我"),
         "auth_biometricHint": MessageLookupByLibrary.simpleMessage("驗證身份"),
         "auth_signInTitle": MessageLookupByLibrary.simpleMessage("需要進行身份驗證"),
