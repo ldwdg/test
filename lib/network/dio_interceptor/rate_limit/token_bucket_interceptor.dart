@@ -84,6 +84,14 @@ class TokenBucketInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
+    // 下载流程的图片信息/API 请求绕过令牌桶限流（对齐 RateLimitInterceptor），
+    // 否则批量下载会被自己的令牌桶串行节流，导致速度骤降/0kb
+    if (options.extra?['bypassRateLimit'] == true ||
+        options.uri.path.contains('/s/')) {
+      handler.next(options);
+      return;
+    }
+
     final host = options.uri.host;
 
     if (globalLimit) {

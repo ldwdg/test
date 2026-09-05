@@ -26,18 +26,12 @@ class SettingTab extends GetView<SettingViewController> {
                 _title,
               ),
             ),
-            largeTitle: Row(
-              children: [
-                Text(
-                  _title,
-                ),
-                const Spacer(),
-                if (Get.find<EhSettingService>().isSafeMode.value)
-                  Container()
-                else
-                  UserWidget().paddingOnly(right: 20),
-              ],
+            largeTitle: Text(
+              _title,
             ),
+            trailing: Get.find<EhSettingService>().isSafeMode.value
+                ? Container()
+                : UserWidget().paddingOnly(right: 20),
           ),
           SliverSafeArea(
             top: false,
