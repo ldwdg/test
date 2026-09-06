@@ -423,6 +423,7 @@ class ImageDownloadProcessor {
     await ehDownload(
       url: url,
       savePathBuilder: savePathBuild,
+      validateImage: true,
       cancelToken: cancelToken,
       onDownloadComplete: () async {
         logger.t('onDownloadComplete');

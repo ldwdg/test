@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
@@ -766,6 +767,7 @@ Future<void> ehDownload({
   CancelToken? cancelToken,
   bool? errToast,
   bool deleteOnError = true,
+  bool validateImage = false,
   VoidCallback? onDownloadComplete,
   ProgressCallback? progressCallback,
 }) async {
@@ -862,6 +864,20 @@ Future<void> ehDownload({
       await sink.close();
     }
 
+    // 完整性校验：期望字节数已知时，实际收到的不足 → 截断，抛错触发重试
+    if (contentLength != null && total < contentLength) {
+      throw DioException(
+        requestOptions: RequestOptions(path: downloadUrl),
+        type: DioExceptionType.unknown,
+        error: 'Incomplete download: received $total/$contentLength bytes',
+      );
+    }
+
+    // 图片校验：魔数 + 解码（与渲染器同款解码器），坏图抛错触发换源重下
+    if (validateImage) {
+      await _validateImageFile(tempFile!);
+    }
+
     logger.d('download completed: $downloadUrl, total: $total');
     onDownloadComplete?.call();
   } catch (e) {
@@ -873,6 +889,54 @@ Future<void> ehDownload({
     }
     rethrow;
   }
+}
+
+/// 校验下载完成的图片文件是否完整可用（魔数 + 解码）
+Future<void> _validateImageFile(File file) async {
+  final Uint8List bytes = await file.readAsBytes();
+  if (!_isValidImageMagic(bytes)) {
+    throw const FormatException('Downloaded file is not a valid image');
+  }
+  // 用与渲染器同款解码器解一遍，截断/损坏会在这里抛错
+  final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+  try {
+    await codec.getNextFrame();
+  } finally {
+    codec.dispose();
+  }
+}
+
+/// 检查常见图片格式的魔数（WebP/JPEG/PNG/GIF）
+bool _isValidImageMagic(Uint8List bytes) {
+  if (bytes.length < 12) return false;
+  // WebP: "RIFF"...."WEBP"
+  if (bytes[0] == 0x52 &&
+      bytes[1] == 0x49 &&
+      bytes[2] == 0x46 &&
+      bytes[3] == 0x46 &&
+      bytes[8] == 0x57 &&
+      bytes[9] == 0x45 &&
+      bytes[10] == 0x42 &&
+      bytes[11] == 0x50) {
+    return true;
+  }
+  // JPEG: FF D8
+  if (bytes[0] == 0xFF && bytes[1] == 0xD8) return true;
+  // PNG: 89 50 4E 47
+  if (bytes[0] == 0x89 &&
+      bytes[1] == 0x50 &&
+      bytes[2] == 0x4E &&
+      bytes[3] == 0x47) {
+    return true;
+  }
+  // GIF: GIF87a / GIF89a
+  if (bytes[0] == 0x47 &&
+      bytes[1] == 0x49 &&
+      bytes[2] == 0x46 &&
+      bytes[3] == 0x38) {
+    return true;
+  }
+  return false;
 }
 
 Future<User?> userLogin(String username, String passwd) async {
