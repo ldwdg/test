@@ -99,10 +99,9 @@ class DownloadController extends GetxController {
   Future<void> asyncInit() async {
     await pathManager.updateCustomDownloadPath();
     pathManager.allowMediaScan(ehSettingService.allowMediaScan);
-    await taskManager.initGalleryTasks(
-      addGalleryTaskCallback: _addGalleryTask,
-      downloadTaskMigrationCallback: downloadTaskMigration,
-    );
+    // 用完整的 initGalleryTasks，启动时同时恢复 running 与 enqueued 的任务；
+    // 否则 enqueued（排队中）的任务启动后不会被重新调度，会卡在排队状态
+    await initGalleryTasks();
   }
 
   Future<void> updateCustomDownloadPath() async {
