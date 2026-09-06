@@ -1,7 +1,7 @@
 # eros_fe 开发约定
 
 ## 项目身份
-- 应用名: Eros-EH+（Android 包名 com.ldwdg.erosehentai，版本 2.0.0+567）
+- 应用名: Eros-EH+（Android 包名 com.ldwdg.erosehentai，版本 1.0.0）
 - fork 自 erosTeam/eros_fe，开发主用 **dsh（DeepSeek Harness）**；aider 留作内部小改/替补（2026-08 评估：dsh 在循环内跑编译门禁+读真实包源码+adb 诊断；aider 的 flash 级模型会编造外部包 API 名且不自行编译验证，不适合“需外部 API 精确性+编译门禁”任务）
 
 ## 技术栈

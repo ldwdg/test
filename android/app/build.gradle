@@ -54,7 +54,7 @@ android {
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        archivesBaseName = "Eros-FE_$versionName+$versionCode"
+        archivesBaseName = "Eros-EH+_$versionName+$versionCode"
         splits {
             abi {
                 enable true

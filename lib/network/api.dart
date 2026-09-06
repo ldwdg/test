@@ -346,7 +346,7 @@ class Api {
   /// 选用feh单独的profile 没有就新建
   static Future<bool?> _selEhProfile() async {
     // 不能带_
-    const kProfileName = 'Eros-FE';
+    const kProfileName = 'Eros-EH+';
 
     final uconfig = await getEhSettings(refresh: true);
 

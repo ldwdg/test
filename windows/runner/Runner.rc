@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.honjow" "\0"
-            VALUE "FileDescription", "Eros-FE" "\0"
+            VALUE "CompanyName", "com.ldwdg" "\0"
+            VALUE "FileDescription", "Eros-EH+" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "fehviewer" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2021 com.honjow. All rights reserved." "\0"
-            VALUE "OriginalFilename", "fehviewer.exe" "\0"
-            VALUE "ProductName", "fehviewer" "\0"
+            VALUE "InternalName", "Eros-EH+" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.ldwdg. All rights reserved." "\0"
+            VALUE "OriginalFilename", "Eros-EH+.exe" "\0"
+            VALUE "ProductName", "Eros-EH+" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
