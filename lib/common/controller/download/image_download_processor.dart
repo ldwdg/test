@@ -107,23 +107,38 @@ class ImageDownloadProcessor {
         progressCallback: progressCallback,
       );
     } on DioException catch (e) {
-      if (e.response?.statusCode == 403) {
-        await handleExpiredLink(
-          preImage,
-          gid,
-          downloadParentPath,
-          downloadInfo.fileNameWithoutExtension,
-          downloadOrigImage,
-          cancelToken,
-          progressCallback,
-          onDownloadCompleteWithFileName,
-          downloadInfo.updatedImage.sourceId,
-          showKey,
-          putImageTaskCallback: putImageTaskCallback,
-        );
-      } else {
+      if (CancelToken.isCancel(e)) {
         rethrow;
       }
+      // 403 或其它网络错误（超时/连接中断等）→ 重新取图并换源重下
+      await handleExpiredLink(
+        preImage,
+        gid,
+        downloadParentPath,
+        downloadInfo.fileNameWithoutExtension,
+        downloadOrigImage,
+        cancelToken,
+        progressCallback,
+        onDownloadCompleteWithFileName,
+        downloadInfo.updatedImage.sourceId,
+        showKey,
+        putImageTaskCallback: putImageTaskCallback,
+      );
+    } catch (e) {
+      // 网络层异常（如 NetworkClientException: ERR_CONTENT_LENGTH_MISMATCH）→ 同样换源重下
+      await handleExpiredLink(
+        preImage,
+        gid,
+        downloadParentPath,
+        downloadInfo.fileNameWithoutExtension,
+        downloadOrigImage,
+        cancelToken,
+        progressCallback,
+        onDownloadCompleteWithFileName,
+        downloadInfo.updatedImage.sourceId,
+        showKey,
+        putImageTaskCallback: putImageTaskCallback,
+      );
     }
   }
 
