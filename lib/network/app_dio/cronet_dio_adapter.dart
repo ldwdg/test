@@ -11,8 +11,13 @@ import 'package:http/http.dart' as http;
 /// 注意：Cronet 使用系统代理设置（无自定义代理 API）。
 /// 若应用依赖自定义代理（非系统代理），需在 Android 上启用系统代理/VPN。
 class CronetDioAdapter implements HttpClientAdapter {
-  // 注：CronetClient 无公开构造（仅 defaultCronetEngine 工厂），不支持自定义 engine
-  CronetDioAdapter() : _client = CronetClient.defaultCronetEngine();
+  // 共享单例 CronetClient：Cronet 每个引擎初始化都会注册一个广播接收器，
+  // 若每个 adapter 都新建引擎，会累积撞上 Android 每进程 1000 个 receiver 上限
+  // → IllegalStateException: Too many receivers 导致闪退。这里全局共享一个客户端。
+  static CronetClient? _sharedClient;
+
+  CronetDioAdapter()
+      : _client = _sharedClient ??= CronetClient.defaultCronetEngine();
 
   final CronetClient _client;
 
