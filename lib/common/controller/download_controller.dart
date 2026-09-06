@@ -702,6 +702,23 @@ class DownloadController extends GetxController {
     logger.d(
         '已完成图片数: gid=${galleryTask.gid}, 完成数=$completeCount/${imageTasksOri.length}');
 
+    // 同步内存中的 completCount，避免计时器/完成判断用到过期值
+    final GalleryTask? existingTask = dState.galleryTaskMap[galleryTask.gid];
+    if (existingTask != null) {
+      dState.galleryTaskMap[galleryTask.gid] =
+          existingTask.copyWith(completCount: completeCount);
+    }
+
+    // 重新统计后发现已全部完成（例如崩溃/断电重启后最后一张其实已下完，
+    // 或状态被恢复逻辑置回 enqueued），直接置为完成，避免卡在排队/下载中状态
+    if (completeCount == galleryTask.fileCount) {
+      logger.d(
+          '重数后确认全部完成: gid=${galleryTask.gid}, $completeCount/${galleryTask.fileCount}');
+      await galleryTaskComplete(galleryTask.gid);
+      _updateDownloadView(['DownloadGalleryItem_${galleryTask.gid}']);
+      return;
+    }
+
     await isarHelper.putGalleryTaskIsolate(
         galleryTask.copyWith(completCount: completeCount));
 
