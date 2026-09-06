@@ -6,17 +6,18 @@ English | [简体中文](README_cn.md)
 
 An unofficial [e-hentai](https://e-hentai.org) / [exhentai](https://exhentai.org) client built with Flutter.
 
-This is a **personal fork** of [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe), rebranded as **Eros-EH+** (`com.ldwdg.erosehentai`, v1.0.0).
+This is a **personal fork** of [erosTeam/eros_fe](https://github.com/erosTeam/eros_fe), rebranded as **Eros-EH+** (`com.ldwdg.erosehentai`, v1.0.1).
 
 ## What's New in This Fork
 
-- **Rebranded**: app name `Eros-EH+`, Android package `com.ldwdg.erosehentai`, version `1.0.0`
+- **Rebranded**: app name `Eros-EH+`, Android package `com.ldwdg.erosehentai`, version `1.0.1`
 - **Removed** sentry_flutter (error reporting) and system_network_proxy (broken Linux plugin) — desktop proxy now reads `http_proxy`/`HTTPS_PROXY` env vars
 - **Isar** upgraded to 3.3.0 stable (compatible with Ubuntu 22.04 / glibc 2.35)
 - **Linux desktop support** added (upstream only shipped android/ios/macos/windows)
 - **Bug fixes**:
   - ExHentai thumbnail redirect to ehgt.org not working (upstream issue #17) — regex rewritten for current URL format
   - Home page parser crash when not logged in
+  - Download: fixed stuck-at-last-image (completion-count race), no-retry on transient network errors, silent truncation/black-image (buffer write pollution + missing completeness check), and Cronet "Too many receivers" crash
 - `lib/config/config.dart` maintained locally as plaintext (upstream git-crypt encrypted file cannot compile without key)
 
 ## Features
