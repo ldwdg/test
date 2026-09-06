@@ -365,6 +365,7 @@ Future<List<GalleryImage>> getGalleryImageList(
   String inUrl, {
   int? page,
   bool refresh = false,
+  bool bypassRateLimit = false,
   CancelToken? cancelToken,
 }) async {
   logger.t('getGalleryImageList: $inUrl, page $page, refresh $refresh');
@@ -377,7 +378,8 @@ Future<List<GalleryImage>> getGalleryImageList(
     inUrl,
     queryParameters: _params,
     httpTransformer: GalleryImageListHttpTransformer(),
-    options: getCacheOptions(refresh: refresh),
+    options: getCacheOptions(refresh: refresh)
+      ..extra = {'bypassRateLimit': bypassRateLimit},
     cancelToken: cancelToken,
   );
 

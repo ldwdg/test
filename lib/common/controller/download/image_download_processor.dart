@@ -498,6 +498,7 @@ class ImageDownloadProcessor {
       page: 0,
       cancelToken: cancelToken,
       refresh: true, // 刷新画廊后加载缩略图不能从缓存读取，否则在改变每页数量后加载画廊会出错
+      bypassRateLimit: true, // 下载取图列表不触发限流
     );
     return moreImageList.length;
   }
@@ -579,6 +580,7 @@ class ImageDownloadProcessor {
       page: page,
       cancelToken: cancelToken,
       refresh: isRefresh, // 刷新画廊后加载缩略图不能从缓存读取，否则在改变每页数量后加载画廊会出错
+      bypassRateLimit: true, // 下载取图列表不触发限流，避免续传时被令牌桶串行节流导致 0 速度
     );
 
     logger.t('获取到的图片列表 ${moreImageList.length}');
