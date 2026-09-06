@@ -700,6 +700,9 @@ class DownloadController extends GetxController {
     logger.d(
         '已完成图片数: gid=${galleryTask.gid}, 完成数=$completeCount/${imageTasksOri.length}');
 
+    // 初始化内存完成计数器（续传时以此为基准，之后每张图完成 +1）
+    dState.curComplete[galleryTask.gid] = completeCount;
+
     // 同步内存中的 completCount，避免计时器/完成判断用到过期值
     final GalleryTask? existingTask = dState.galleryTaskMap[galleryTask.gid];
     if (existingTask != null) {
@@ -962,7 +965,8 @@ class DownloadController extends GetxController {
   Future _onDownloadComplete(String fileName, int gid, int itemSer) async {
     loggerSimple.d('画廊项目下载完成: gid=$gid, 序号=$itemSer, 文件=$fileName');
 
-    // 下载完成 更新数据库明细
+    // 下载完成 更新数据库明细（isolate 内标记完成；其返回的 findAll 计数
+    // 因 mdbx 写事务快照固定而读到过期值，不可用于完成判断，仅用于取封面）
     final List<GalleryImageTask> listComplete = kDebugMode
         ? await isarHelper.onDownloadComplete(
             gid,
@@ -978,17 +982,19 @@ class DownloadController extends GetxController {
     final coverImg =
         listComplete.firstWhereOrNull((element) => element.ser == 1)?.filePath;
 
-    // 只更新内存（单调递增），不在这里写库——避免并发完成回调各自写库、
-    // 过期计数覆盖最新值，导致画廊卡在 N-1/N
+    // 用内存单调计数器（每张图完成回调一次 +1），替代 isolate 里过期的 findAll 计数
+    final int doneCount = (dState.curComplete[gid] ?? 0) + 1;
+    dState.curComplete[gid] = doneCount;
+
     final GalleryTask? task = galleryTaskUpdate(
       gid,
-      countComplete: listComplete.length,
+      countComplete: doneCount,
       coverImg: coverImg,
     );
 
     if (task != null) {
-      // 用内存里单调递增后的 completCount 判断，await 确保状态落库
-      if (task.completCount == task.fileCount) {
+      // 用计数器判断完成，await 确保状态落库
+      if (doneCount >= task.fileCount) {
         await galleryTaskComplete(gid);
       }
     } else {
