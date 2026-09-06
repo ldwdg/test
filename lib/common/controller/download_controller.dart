@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:eros_fe/common/controller/download/download_monitor.dart' as dm;
 import 'package:eros_fe/common/controller/download/download_path_manager.dart';
@@ -976,14 +975,11 @@ class DownloadController extends GetxController {
             TaskStatus.complete.value,
           );
 
-    loggerSimple.d('已完成图片: gid=$gid, 数量=${listComplete.length}');
-    loggerSimple.d(
-        '序号列表=${listComplete.map((e) => e.ser).sorted((a, b) => a.compareTo(b)).join(',')}');
-
     final coverImg =
         listComplete.firstWhereOrNull((element) => element.ser == 1)?.filePath;
-    loggerSimple.t('封面图片: gid=$gid, 路径=$coverImg');
 
+    // 只更新内存（单调递增），不在这里写库——避免并发完成回调各自写库、
+    // 过期计数覆盖最新值，导致画廊卡在 N-1/N
     final GalleryTask? task = galleryTaskUpdate(
       gid,
       countComplete: listComplete.length,
@@ -991,23 +987,12 @@ class DownloadController extends GetxController {
     );
 
     if (task != null) {
-      loggerSimple.t(
-          '检查画廊是否完成: gid=$gid, 已完成=${listComplete.length}/${task.fileCount}');
-
-      if (task.fileCount == listComplete.length) {
-        loggerSimple
-            .d('画廊任务全部完成: gid=$gid, ${listComplete.length}/${task.fileCount}');
-        galleryTaskComplete(gid);
-      } else {
-        loggerSimple
-            .d('画廊任务部分完成: gid=$gid, ${listComplete.length}/${task.fileCount}');
+      // 用内存里单调递增后的 completCount 判断，await 确保状态落库
+      if (task.completCount == task.fileCount) {
+        await galleryTaskComplete(gid);
       }
     } else {
       logger.e('无法更新画廊任务: gid=$gid, 任务不存在');
-    }
-
-    if (task != null) {
-      await isarHelper.putGalleryTask(task);
     }
     _updateDownloadView(['DownloadGalleryItem_$gid']);
   }

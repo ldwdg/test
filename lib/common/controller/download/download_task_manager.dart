@@ -162,7 +162,8 @@ class DownloadTaskManager {
     }
   }
 
-  /// 更新任务进度
+  /// 更新任务进度（仅更新内存，不写库；持久化由 _onDownloadComplete 统一处理，
+  /// 避免并发完成回调各自 fire-and-forget 写库、过期计数覆盖最新值导致卡最后一张）
   GalleryTask? galleryTaskUpdate(
     int gid, {
     int? countComplete,
@@ -175,15 +176,15 @@ class DownloadTaskManager {
       return null;
     }
 
+    // 完成数只增不减，防止并发完成回调拿过期计数把已推进的进度回退
+    final int currentComplete = dState.galleryTaskMap[gid]!.completCount ?? 0;
+    final int nextComplete =
+        (countComplete ?? 0) > currentComplete ? countComplete! : currentComplete;
+
     dState.galleryTaskMap[gid] = dState.galleryTaskMap[gid]!.copyWith(
-      completCount: countComplete,
+      completCount: nextComplete,
       coverImage: coverImg,
     );
-
-    final task = dState.galleryTaskMap[gid];
-    if (task != null) {
-      isarHelper.putGalleryTaskIsolate(task);
-    }
 
     return dState.galleryTaskMap[gid];
   }
