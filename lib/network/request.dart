@@ -829,21 +829,23 @@ Future<void> ehDownload({
         }
 
         // 累积到 256KB 缓冲区后写入，减少文件系统调用
+        // 注意：sink.add 传入的是引用/视图而非拷贝，必须用 fromList 复制，
+        // 否则下一个 chunk 用 setRange 覆盖 buffer 时会把已排队的数据污染
         if (chunk.length >= buffer.length) {
           if (bufferLen > 0) {
-            sink.add(Uint8List.sublistView(buffer, 0, bufferLen));
+            sink.add(Uint8List.fromList(buffer.sublist(0, bufferLen)));
             bufferLen = 0;
           }
           sink.add(chunk);
         } else {
           if (bufferLen + chunk.length > buffer.length) {
-            sink.add(Uint8List.sublistView(buffer, 0, bufferLen));
+            sink.add(Uint8List.fromList(buffer.sublist(0, bufferLen)));
             bufferLen = 0;
           }
           buffer.setRange(bufferLen, bufferLen + chunk.length, chunk);
           bufferLen += chunk.length;
           if (bufferLen == buffer.length) {
-            sink.add(buffer);
+            sink.add(Uint8List.fromList(buffer));
             bufferLen = 0;
           }
         }
@@ -857,7 +859,7 @@ Future<void> ehDownload({
       }
 
       if (bufferLen > 0) {
-        sink.add(Uint8List.sublistView(buffer, 0, bufferLen));
+        sink.add(Uint8List.fromList(buffer.sublist(0, bufferLen)));
       }
     } finally {
       await sink.flush();
