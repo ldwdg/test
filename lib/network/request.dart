@@ -1052,8 +1052,11 @@ Future<void> galleryAddFavorite(
 
   final FormData formData = FormData.fromMap({
     'favcat': favcat,
-    'update': '1',
     'favnote': favnote,
+    // e-hentai 表单必需 submit 字段（对齐 ehviewer: submit=Apply Changes），
+    // 缺失时服务端不处理 favcat 变更，导致取消收藏失效
+    'submit': 'Apply Changes',
+    'update': '1',
   });
 
   DioHttpResponse httpResponse = await dioHttpClient.post(
@@ -1062,6 +1065,11 @@ Future<void> galleryAddFavorite(
     data: formData,
     options: getCacheOptions(refresh: true),
   );
+
+  // 检查响应，失败抛错（否则本地已移除但服务端未生效）
+  if (!httpResponse.ok) {
+    throw httpResponse.error ?? HttpException('add fav error');
+  }
 }
 
 Future<FavAdd> galleryGetFavorite(
