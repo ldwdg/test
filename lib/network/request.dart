@@ -1053,9 +1053,8 @@ Future<void> galleryAddFavorite(
   final FormData formData = FormData.fromMap({
     'favcat': favcat,
     'favnote': favnote,
-    // e-hentai 表单必需 submit 字段（对齐 ehviewer: submit=Apply Changes），
-    // 缺失时服务端不处理 favcat 变更，导致取消收藏失效
-    'submit': 'Apply Changes',
+    // e-hentai 表单按钮字段名是 "apply"（对齐现代版 FooIbar EhViewer 的 modifyFavorites）
+    'apply': 'Apply Changes',
     'update': '1',
   });
 
