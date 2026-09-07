@@ -63,7 +63,18 @@ class CronetDioAdapter implements HttpClientAdapter {
     final fd = options.data as FormData;
     final mReq = http.MultipartRequest(options.method, options.uri);
     options.headers.forEach((k, v) {
-      if (v != null) mReq.headers[k] = '$v';
+      if (v == null) return;
+      // dio 在 _transformData 阶段已用 dio 自己的 boundary 算好
+      // content-type 与 content-length 写入 headers；但这里改用
+      // http.MultipartRequest 重新组包，finalize() 会生成新的 boundary 并
+      // 覆盖 content-type，却不会更新 content-length，导致发出的
+      // content-length 与实际 body 长度不一致 → 服务器/Cloudflare 返回 400。
+      // 因此这里不复制这两个头，交给 http 包按自己的 boundary 重新计算。
+      final lowerKey = k.toLowerCase();
+      if (lowerKey == 'content-type' || lowerKey == 'content-length') {
+        return;
+      }
+      mReq.headers[k] = '$v';
     });
     for (final f in fd.fields) {
       mReq.fields[f.key] = f.value;
