@@ -1063,7 +1063,9 @@ Future<void> galleryAddFavorite(
     url,
     queryParameters: _params,
     data: formData,
-    options: getCacheOptions(refresh: true),
+    // e-hentai 表单 POST 有 CSRF 校验，缺 Referer 会返回 400
+    options: getCacheOptions(refresh: true)
+      ..headers?['referer'] = globalDioConfig.baseUrl,
   );
 
   // 检查响应，失败抛错（否则本地已移除但服务端未生效）
